@@ -48,7 +48,13 @@ class ProductRepository:
             cursor.close()
             conn.close()
 
-    # def buscar(self, buscar_nombre):
+    def buscar(self, buscar_nombre):
+        conn, cursor = self.conexion.conectar()
+
+        try:
+            instruccion = 'SELECT * FROM productos WHERE '
+        except sqlite3.Error as error:
+            print(f'Error :{error}')
 
     
 
