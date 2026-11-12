@@ -1,4 +1,5 @@
 from aplicacion.base_datos.conexion import Conexion
+from aplicacion.modelos.producto import Producto
 
 import sqlite3
 from dataclasses import dataclass
@@ -48,13 +49,49 @@ class ProductRepository:
             cursor.close()
             conn.close()
 
-    def buscar(self, buscar_nombre):
-        conn, cursor = self.conexion.conectar()
+    def buscar_por_id(self, id_buscar):
+        if type(id_buscar) is not int or id_buscar <= 0:
+            return f'El id del producto debe ser un numero entero!'
+        else:
+            conn, cursor = self.conexion.conectar()
+            try:
+                instruccion = 'SELECT * FROM productos WHERE id = ?'
+                valores = (id_buscar,)
+                cursor.execute(instruccion, valores)
+                encontrado = cursor.fetchone()
+                if encontrado is not None:
+                    tupla_a_objeto = Producto(nombre=encontrado[1], unidad_medida=encontrado[2], categoria=encontrado[3], subcategoria=encontrado[4], id=encontrado[0]) 
+                    return tupla_a_objeto
+                return None
+            except sqlite3.Error as error:
+                print(f'Error :{error}')
+            finally:
+                cursor.close()
+                conn.close()
+        
+    def buscar_por_nombre(self, nombre_buscar):
+        if not nombre_buscar:
+            return []
+        else:
+            nombre_buscar = nombre_buscar.strip() .upper()
+            nombre_buscar = nombre_buscar.split()
+            conn, cursor = self.conexion.conectar()
+            condiciones = []
+            valores = []
+            for p in nombre_buscar:
+                condiciones.append('nombre LIKE ?')
+                valores.append(f'%{p}%')
 
-        try:
-            instruccion = 'SELECT * FROM productos WHERE '
-        except sqlite3.Error as error:
-            print(f'Error :{error}')
-
+            consulta = ' AND '.join(condiciones)
+            try:
+                instruccion = f'SELECT * FROM productos WHERE {consulta}'
+                cursor.execute(instruccion, valores)
+                resultado = cursor.fetchall()
+                return resultado
+            except sqlite3.Error as error:
+                print(f'error: {error}')
+            finally:
+                cursor.close()
+                conn.close()
     
 

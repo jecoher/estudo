@@ -10,7 +10,8 @@ class Producto:
 
     
     def __post_init__(self):
-        nombre = self.nombre.strip() .upper()
-        unidad_medida = self.unidad_medida.strip() .upper()
-        categoria = self.categoria.strip() .upper()
-        subcategoria = self.subcategoria.strip() .upper()
+        self.nombre = self.nombre.strip() .upper()
+        self.unidad_medida = self.unidad_medida.strip() .upper()
+        self.categoria = self.categoria.strip() .upper()
+        self.subcategoria = self.subcategoria.strip() .upper()
+
