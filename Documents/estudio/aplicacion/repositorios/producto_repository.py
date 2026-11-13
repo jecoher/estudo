@@ -2,35 +2,43 @@ from aplicacion.base_datos.conexion import Conexion
 from aplicacion.modelos.producto import Producto
 
 import sqlite3
-from dataclasses import dataclass
+
 
 class ProductRepository:
     def __init__(self):
         self.conexion = Conexion()
 
+    @staticmethod
+    def cambio_a_objeto(registro):
+        return Producto(
+            id=registro[0],
+            nombre=registro[1],
+            unidad_medida=registro[2],
+            categoria=registro[3],
+            subcategoria=registro[4]
+        )
+    
     def crear(self):
         conn, cursor = self.conexion.conectar()
         try:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS productos (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nombre TEXT NOT NULL UNIQUE UNIQUE,
+                    nombre TEXT NOT NULL UNIQUE,
                     unidad_medida TEXT NOT NULL,
                     categoria TEXT NOT NULL,
                     subcategoria TEXT NOT NULL
                 )
             ''')
             conn.commit()
-        except sqlite3.Error as error:
+        except sqlite3.Error:
             conn.rollback()
-            print(f'Error al crear la tabla {error}')
             raise
         finally:
             cursor.close()
             conn.close()    
 
-    def guardar(self, objeto_producto):
-
+    def guardar(self, objeto_producto) -> object:
         conn, cursor = self.conexion.conectar()
         try:
             instruccion = ('INSERT INTO productos (nombre, unidad_medida, categoria, subcategoria) VALUES (?,?,?,?)')
@@ -38,20 +46,14 @@ class ProductRepository:
             cursor.execute(instruccion, valores)
             objeto_producto.id = cursor.lastrowid
             conn.commit()
-            print("producto registrado correctamente")
             return objeto_producto
-        except sqlite3.IntegrityError as errorIntegridad:
-            print(f'ya existe un producto con este nombre! \nError: {errorIntegridad}')
-        except sqlite3.Error as error:
-            print(f'No fue posible guardar el producto! \nError: {error}')
-            raise
         finally:
             cursor.close()
             conn.close()
 
-    def buscar_por_id(self, id_buscar):
+    def buscar_por_id(self, id_buscar) -> object:
         if type(id_buscar) is not int or id_buscar <= 0:
-            return f'El id del producto debe ser un numero entero!'
+            return None
         else:
             conn, cursor = self.conexion.conectar()
             try:
@@ -60,16 +62,19 @@ class ProductRepository:
                 cursor.execute(instruccion, valores)
                 encontrado = cursor.fetchone()
                 if encontrado is not None:
-                    tupla_a_objeto = Producto(nombre=encontrado[1], unidad_medida=encontrado[2], categoria=encontrado[3], subcategoria=encontrado[4], id=encontrado[0]) 
+                    tupla_a_objeto = self.cambio_a_objeto(encontrado)
                     return tupla_a_objeto
                 return None
             except sqlite3.Error as error:
-                print(f'Error :{error}')
+                raise
             finally:
                 cursor.close()
                 conn.close()
         
-    def buscar_por_nombre(self, nombre_buscar):
+    def buscar_por_nombre(self, nombre_buscar) -> object:
+        '''
+        >>> list() vacia si atributo no encontrado
+        '''
         if not nombre_buscar:
             return []
         else:
@@ -87,11 +92,19 @@ class ProductRepository:
                 instruccion = f'SELECT * FROM productos WHERE {consulta}'
                 cursor.execute(instruccion, valores)
                 resultado = cursor.fetchall()
-                return resultado
+                if not resultado:
+                    return []
+
+                lista_objetos_encontrados = []
+                for item in resultado:
+                    item_a_objeto = self.cambio_a_objeto(item)
+                    lista_objetos_encontrados.append(item_a_objeto)
+                return lista_objetos_encontrados
             except sqlite3.Error as error:
-                print(f'error: {error}')
+                raise
             finally:
                 cursor.close()
                 conn.close()
     
+
 
