@@ -7,14 +7,15 @@ class ProductService:
 
     def guardar(self, objeto):
         encontrado = self.repositorio.buscar_por_nombre(objeto.nombre)
-        if encontrado != []:
+        if encontrado:
             return f'Producto ya registrado!'
-        try:
-            return self.repositorio.guardar(objeto)
-        except sqlite3.IntegrityError as error:
-            return f'Producto ya registrado! {error}'
-        except sqlite3.Error as error:
-            return f'Falla en la base de datos {error}'
+        return self.repositorio.guardar(objeto)
+
+    def buscar_por_id(self, id_buscar):
+        return self.repositorio.buscar_por_id(id_buscar)
+
+    def buscar_por_nombre(self, nombre_procurado):
+        return self.repositorio.buscar_por_nombre(nombre_procurado)
 
         
 
