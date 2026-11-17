@@ -1,4 +1,5 @@
 from aplicacion.repositorios.producto_repository import ProductRepository
+from aplicacion.excepciones.producto_excepciones import ProductoDuplicadoError
 import sqlite3
 
 class ProductService:
@@ -8,7 +9,7 @@ class ProductService:
     def guardar(self, objeto):
         encontrado = self.repositorio.buscar_por_nombre(objeto.nombre)
         if encontrado:
-            return f'Producto ya registrado!'
+            raise ProductoDuplicadoError('El producto ya esta registrado')
         return self.repositorio.guardar(objeto)
 
     def buscar_por_id(self, id_buscar):

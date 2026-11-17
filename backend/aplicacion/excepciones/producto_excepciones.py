@@ -1,0 +1,2 @@
+class ProductoDuplicadoError(Exception):
+    pass    
